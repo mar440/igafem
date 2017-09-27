@@ -1,0 +1,8 @@
+*.sw*
+*.log
+*.txt
+*.vtu
+*.dat
+build*
+*.user
+bkp.*
