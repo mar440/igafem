@@ -161,16 +161,6 @@ int main(int argc, char *argv[])
     unstructuredGrid->GetPointData()->AddArray(_vtkDataArray3);
 // -----------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
     double _x,_y,_z;
     int nPoints = 0;
 
@@ -233,15 +223,15 @@ int main(int argc, char *argv[])
 
 
 
-    vector < int > v_plVert({0,   9,  18,
-                             3,  12,  21,
-                             6,  15,  24,
-                             1,  10,  19,
-                             4,  13,  22,
-                             7,  16,  25,
-                             2,  11,  20,
-                             5,  14,  23,
-                             8,  17,  26});
+    vector < int > v_plVert({ 0,   9,  18,
+                              3,  12,  21,
+                              6,  15,  24,
+                              1,  10,  19,
+                              4,  13,  22,
+                              7,  16,  25,
+                              2,  11,  20,
+                              5,  14,  23,
+                              8,  17,  26});
 
     for (int i = 0 ; i < v_plVert.size(); i++){
         plvx_ids->InsertId(i,v_plVert[i]);
@@ -284,8 +274,6 @@ int main(int argc, char *argv[])
 // PartitionId --------------------------------------------------------------------------------
 
 
-//    vtkDataArray *_vtkDataArray_PartId;
-//    _vtkDataArray_PartId = vtkDoubleArray::New();
     vtkSmartPointer<vtkIntArray> _vtkDataArray_PartId = vtkSmartPointer<vtkIntArray>::New();
     _vtkDataArray_PartId->SetName("PartitionId");
     _vtkDataArray_PartId->SetNumberOfComponents(1);
@@ -294,7 +282,7 @@ int main(int argc, char *argv[])
     std::cout << "decomposition set-up: " << decomposition << std::endl;
 
 
-    // Upper body
+    // FEM
     int cnt = 0;
     int currentIdOfMat = 0;
     tuple[0] = currentIdOfMat;
@@ -323,15 +311,10 @@ int main(int argc, char *argv[])
 
 
 // MaterialId --------------------------------------------------------------------------------
-//
-//    vtkDataArray *_vtkDataArray_MatId;
-//    _vtkDataArray_MatId = vtkDoubleArray::New();
     vtkSmartPointer<vtkIntArray> _vtkDataArray_MatId = vtkSmartPointer<vtkIntArray>::New();
     _vtkDataArray_MatId->SetName("MaterialId");
     _vtkDataArray_MatId->SetNumberOfComponents(1);
     _vtkDataArray_MatId->SetNumberOfTuples(nEl);
-
-
     tuple[0] = 1;
     _vtkDataArray_MatId->SetTuple(0, tuple);
     tuple[0] = 2;
@@ -339,18 +322,11 @@ int main(int argc, char *argv[])
         _vtkDataArray_MatId->SetTuple(i, tuple);
     }
     unstructuredGrid->GetCellData()->AddArray(_vtkDataArray_MatId);
-
-//
 // FormulationId --------------------------------------------------------------------------------
-//
-//    vtkDataArray *_vtkDataArray_FormId;
-//    _vtkDataArray_FormId = vtkDoubleArray::New();
     vtkSmartPointer<vtkIntArray> _vtkDataArray_FormId = vtkSmartPointer<vtkIntArray>::New();
     _vtkDataArray_FormId->SetName("FormulationId");
     _vtkDataArray_FormId->SetNumberOfComponents(1);
     _vtkDataArray_FormId->SetNumberOfTuples(nEl);
-
-
     tuple[0] = 900;
     _vtkDataArray_FormId->SetTuple(0, tuple);
     tuple[0] = 30;
@@ -358,13 +334,11 @@ int main(int argc, char *argv[])
         _vtkDataArray_FormId->SetTuple(i, tuple);
     }
     unstructuredGrid->GetCellData()->AddArray(_vtkDataArray_FormId);
-//
 // PieceId --------------------------------------------------------------------------------
     vtkSmartPointer<vtkIntArray> _vtkDataArray_PieceId = vtkSmartPointer<vtkIntArray>::New();
     _vtkDataArray_PieceId->SetName("PieceId");
     _vtkDataArray_PieceId->SetNumberOfComponents(1);
     _vtkDataArray_PieceId->SetNumberOfTuples(nEl);
-
     tuple[0] = 1;
     _vtkDataArray_PieceId->SetTuple(0, tuple);
     tuple[0] = 2;
@@ -372,14 +346,11 @@ int main(int argc, char *argv[])
         _vtkDataArray_PieceId->SetTuple(i, tuple);
     }
     unstructuredGrid->GetCellData()->AddArray(_vtkDataArray_PieceId);
-
-// ---------------
 // RegionId --------------------------------------------------------------------------------
     vtkSmartPointer<vtkIntArray> _vtkDataArray_RegionId = vtkSmartPointer<vtkIntArray>::New();
     _vtkDataArray_RegionId->SetName("RegionId");
     _vtkDataArray_RegionId->SetNumberOfComponents(1);
     _vtkDataArray_RegionId->SetNumberOfTuples(nEl);
-
     tuple[0] = 0;
     _vtkDataArray_RegionId->SetTuple(0, tuple);
     tuple[0] = 1;
@@ -388,22 +359,19 @@ int main(int argc, char *argv[])
     }
     unstructuredGrid->GetCellData()->AddArray(_vtkDataArray_RegionId);
 
-// ---------------
-
-
-  unstructuredGrid->GetCellData()->AddArray(_vtkDataArray_PartId);
+    unstructuredGrid->GetCellData()->AddArray(_vtkDataArray_PartId);
 
     // Write file
-  vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer =
-    vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
-  writer->SetFileName(filename.c_str());
+    vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer =
+            vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
+    writer->SetFileName(filename.c_str());
 
-  if (asciiOrBinaryVtu){
-    writer->SetDataModeToAscii();
-  }
-  else{
-    writer->SetDataModeToBinary();
-  }
+    if (asciiOrBinaryVtu){
+      writer->SetDataModeToAscii();
+    }
+    else{
+      writer->SetDataModeToBinary();
+    }
 
 
 #if VTK_MAJOR_VERSION <= 5
@@ -414,35 +382,35 @@ int main(int argc, char *argv[])
   writer->Write();
 
   // Read and display file for verification that it was written correclty
-  if (display_mesh){
-      vtkSmartPointer<vtkXMLUnstructuredGridReader> reader =
-        vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
-      reader->SetFileName(filename.c_str());
-      reader->Update();
+    if (display_mesh){
+        vtkSmartPointer<vtkXMLUnstructuredGridReader> reader =
+          vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
+        reader->SetFileName(filename.c_str());
+        reader->Update();
 
-      vtkSmartPointer<vtkDataSetMapper> mapper =
-        vtkSmartPointer<vtkDataSetMapper>::New();
-      mapper->SetInputConnection(reader->GetOutputPort());
+        vtkSmartPointer<vtkDataSetMapper> mapper =
+          vtkSmartPointer<vtkDataSetMapper>::New();
+        mapper->SetInputConnection(reader->GetOutputPort());
 
-      vtkSmartPointer<vtkActor> actor =
-        vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(mapper);
+        vtkSmartPointer<vtkActor> actor =
+          vtkSmartPointer<vtkActor>::New();
+        actor->SetMapper(mapper);
 
-      vtkSmartPointer<vtkRenderer> renderer =
-        vtkSmartPointer<vtkRenderer>::New();
-      vtkSmartPointer<vtkRenderWindow> renderWindow =
-        vtkSmartPointer<vtkRenderWindow>::New();
-      renderWindow->AddRenderer(renderer);
-      vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-        vtkSmartPointer<vtkRenderWindowInteractor>::New();
-      renderWindowInteractor->SetRenderWindow(renderWindow);
+        vtkSmartPointer<vtkRenderer> renderer =
+          vtkSmartPointer<vtkRenderer>::New();
+        vtkSmartPointer<vtkRenderWindow> renderWindow =
+          vtkSmartPointer<vtkRenderWindow>::New();
+        renderWindow->AddRenderer(renderer);
+        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+          vtkSmartPointer<vtkRenderWindowInteractor>::New();
+        renderWindowInteractor->SetRenderWindow(renderWindow);
 
-      renderer->AddActor(actor);
-      renderer->SetBackground(.3, .6, .3); // Background color green
+        renderer->AddActor(actor);
+        renderer->SetBackground(.3, .6, .3); // Background color green
 
-      renderWindow->Render();
-      renderWindowInteractor->Start();
-  }
+        renderWindow->Render();
+        renderWindowInteractor->Start();
+    }
 
   return EXIT_SUCCESS;
 }
