@@ -21,13 +21,15 @@
 #include <vector>
 #include <vtkFieldData.h>
 
-int nEx = 8;
-int nEy = 6;
-int nEz = 6;
-int nSx = 2;
+int nEx = 2;
+int nEy = 2;
+int nEz = 2;
+int nSx = 1;
 int nSy = 1;
 int nSz = 1;
 
+int nEl_IGA_x = 5;
+//#define origIGA
 
 
 bool asciiOrBinaryVtu = true;
@@ -42,7 +44,7 @@ int main(int argc, char *argv[])
 {
 
    // - geometry setting ()
-    double lengthUp[] = {4.0, 2.0, 2.0};
+    double length[] = {4.0, 2.0, 2.0};
     // - decomposition
     int nElSub[] = {nEx,nEy,nEz};
     int nSub[]   = {nSx,nSy,nSz};
@@ -50,6 +52,8 @@ int main(int argc, char *argv[])
     // - geometry setting ()
     // - decomposition
 
+
+    int cnt;
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //                      DEFINITION OF FEM BODY
@@ -59,21 +63,21 @@ int main(int argc, char *argv[])
     int nElxyz_allUp[3];
     for (int i = 0; i < 3; i++){
         nElxyz_allUp[i] = nElSub[i] * nSub[i];
-        shiftUp[i] = 0.5 * lengthUp[i];
+        shiftUp[i] = 0.5 * length[i];
     }
 
     int nEl_FEM = nElxyz_allUp[0] * nElxyz_allUp[1] * nElxyz_allUp[2];
+//    int nEl_IGA = nEl_IGA_x * nEl_IGA_x * nEl_IGA_x;
     int nEl_IGA = 1;
     int nEl = nEl_IGA + nEl_FEM;
 
 
     double dxyzUp[3];
     for (int i = 0 ; i < 3; i++){
-        dxyzUp[i] = lengthUp[i] / nElxyz_allUp[i];
+        dxyzUp[i] = length[i] / nElxyz_allUp[i];
     }
 
     int nP_FEM = (nElxyz_allUp[0] + 1) * (nElxyz_allUp[1] + 1) * (nElxyz_allUp[2] + 1);
-
 
 
 
@@ -89,9 +93,51 @@ int main(int argc, char *argv[])
     vtkSmartPointer<vtkDoubleArray> _vtkDataArray0 = vtkSmartPointer<vtkDoubleArray>::New();
     _vtkDataArray0->SetName("Knots_0");
     _vtkDataArray0->SetNumberOfComponents(1);
-    vector < double > t0( {0.0e+00,  0.e+00,  0.0e+00,  1.0e+00,  1.0e+00,  1.0e+00,
-                           0.0e+00,  0.e+00,  0.0e+00,  1.0e+00,  1.0e+00,  1.0e+00,
-                           0.0e+00,  0.e+00,  0.0e+00,  1.0e+00,  1.0e+00,  1.0e+00});
+
+#ifdef origIGA
+        vector < double > t0( {0.0e+00,  0.e+00,  0.0e+00,  1.0e+00,  1.0e+00,  1.0e+00,
+                               0.0e+00,  0.e+00,  0.0e+00,  1.0e+00,  1.0e+00,  1.0e+00,
+                               0.0e+00,  0.e+00,  0.0e+00,  1.0e+00,  1.0e+00,  1.0e+00});
+        int n0 = 6;
+#else
+
+
+
+        int nKnot_x = nEl_IGA_x + 1;
+        int n0 = (6 + nEl_IGA_x - 1);
+        vector < double > t0( 3 * n0,1);
+
+
+        t0[0 + n0 * 0] = 0;
+        t0[1 + n0 * 0] = 0;
+        t0[2 + n0 * 0] = 0;
+
+        t0[0 + n0 * 1] = 0;
+        t0[1 + n0 * 1] = 0;
+        t0[2 + n0 * 1] = 0;
+
+        t0[0 + n0 * 2] = 0;
+        t0[1 + n0 * 2] = 0;
+        t0[2 + n0 * 2] = 0;
+
+        double knot_step = 1.0 / double (nEl_IGA_x);
+        for (int i = 0; i < nEl_IGA_x - 1; i++){
+            t0[3 + n0 * 0 + i] = knot_step * (i + 1);
+            t0[3 + n0 * 1 + i] = knot_step * (i + 1);
+            t0[3 + n0 * 2 + i] = knot_step * (i + 1);
+        }
+#endif
+
+
+    for (int j = 0; j < 3; j++){
+        for (int i = 0; i < n0; i++){
+        cout << t0[j * n0 + i] << " ";
+        }
+        cout << endl;
+    }
+
+
+
     _vtkDataArray0->SetNumberOfTuples(t0.size());
     double tuple[] = {0};
     for (int i = 0; i < t0.size(); i++){
@@ -103,6 +149,7 @@ int main(int argc, char *argv[])
     vtkSmartPointer<vtkDoubleArray> _vtkDataArray1 = vtkSmartPointer<vtkDoubleArray>::New();
     _vtkDataArray1->SetName("Weights_0");
     _vtkDataArray1->SetNumberOfComponents(1);
+#ifdef origIGA
     vector < double > t1(  {1.0e+00,  1.0e+00,  1.0e+00,
                             1.0e+00,  1.0e+00,  1.0e+00,
                             1.0e+00,  1.0e+00,  1.0e+00,
@@ -112,6 +159,11 @@ int main(int argc, char *argv[])
                             1.0e+00,  1.0e+00,  1.0e+00,
                             1.0e+00,  1.0e+00,  1.0e+00,
                             1.0e+00,  1.0e+00,  1.0e+00});
+#else
+    vector < double > t1(nKnot_x * nKnot_x * nKnot_x,1);
+#endif
+
+
     _vtkDataArray1->SetNumberOfTuples(t1.size());
 
 
@@ -124,7 +176,13 @@ int main(int argc, char *argv[])
     vtkSmartPointer<vtkIntArray> _vtkDataArray2 = vtkSmartPointer<vtkIntArray>::New();
     _vtkDataArray2->SetName("PatchData_0");
     _vtkDataArray2->SetNumberOfComponents(1);
+#ifdef origIGA
     vector < double > t2(  {2,  2,  2,  3,  3,  3,  6,  6,  6});
+#else
+    vector < double > t2(  { 2,  2,  2,
+                            nEl_IGA_x + 2,  nEl_IGA_x + 2,  nEl_IGA_x + 2,
+                            6 + nEl_IGA_x - 1,  6 + nEl_IGA_x - 1,   6 + nEl_IGA_x - 1 } );
+#endif
     _vtkDataArray2->SetNumberOfTuples(t2.size());
 
 
@@ -165,6 +223,7 @@ int main(int argc, char *argv[])
     int nPoints = 0;
 
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+#ifdef origIGA
     vector < double > vPointsIGA({
          -4.00000000e+00, -1.00000000e+00, -1.00000000e+00,
          -4.00000000e+00, -1.00000000e+00,  0.00000000e+00,
@@ -193,6 +252,32 @@ int main(int argc, char *argv[])
           0.00000000e+00,  1.00000000e+00, -1.00000000e+00,
           0.00000000e+00,  1.00000000e+00,  0.00000000e+00,
           0.00000000e+00,  1.00000000e+00,  1.00000000e+00 });
+#else
+    vector < double > vPointsIGA(3 * nP_IGA);
+    double dxyzIGA[3];
+    double shiftIGA[3];
+    for (int i = 0 ; i < 3 ; i++){
+        dxyzIGA[i] = length[i] / double (nEl_IGA_x + 1) ;
+        shiftIGA[i] = - 0.5 * length[i];
+    }
+    shiftIGA[0] = -length[0];
+
+    cnt = 0;
+    for (int kk = 0; kk <  nEl_IGA_x + 2; kk++){
+        for (int jj = 0; jj <  nEl_IGA_x + 2; jj++){
+            for (int ii = 0; ii <  nEl_IGA_x + 2; ii++){
+                _x = ii * dxyzIGA[0] + shiftIGA[0];
+                _y = jj * dxyzIGA[1] + shiftIGA[1];
+                _z = kk * dxyzIGA[2] + shiftIGA[2];
+                vPointsIGA[cnt + 0] = _x;
+                vPointsIGA[cnt + 1] = _y;
+                vPointsIGA[cnt + 2] = _z;
+                cnt += 3;
+            }
+        }
+    }
+
+#endif
 
     for (int i = 0; i <  nP_IGA ; i++){
         _x = vPointsIGA[3 * i + 0];
@@ -223,6 +308,7 @@ int main(int argc, char *argv[])
 
 
 
+#ifdef origIGA
     vector < int > v_plVert({ 0,   9,  18,
                               3,  12,  21,
                               6,  15,  24,
@@ -232,6 +318,11 @@ int main(int argc, char *argv[])
                               2,  11,  20,
                               5,  14,  23,
                               8,  17,  26});
+#else
+    vector < int > v_plVert( nP_IGA );
+    for (int i = 0 ; i < nP_IGA ; i++)
+        v_plVert[i] = i;
+#endif
 
     for (int i = 0 ; i < v_plVert.size(); i++){
         plvx_ids->InsertId(i,v_plVert[i]);
@@ -283,7 +374,7 @@ int main(int argc, char *argv[])
 
 
     // FEM
-    int cnt = 0;
+    cnt = 0;
     int currentIdOfMat = 0;
     tuple[0] = currentIdOfMat;
     _vtkDataArray_PartId->SetTuple(cnt, tuple);
